@@ -26,7 +26,7 @@ namespace MFSC.ViewModels.Pages
         private void InitializeViewModel()
         {
             CurrentTheme = ApplicationThemeManager.GetAppTheme();
-            AppVersion = $"PC管理器 for School - {GetAssemblyVersion()}";
+            AppVersion = $"PC管理器 for School - {GetAssemblyVersion()}\r\n\r\nMFSC is a management system for PCs in schools.Built with .NET 9.UI Framework: WPF,Wpf-Ui.\r\nCrafted for both TCL and Seewo School Computer";
 
             _isInitialized = true;
         }
