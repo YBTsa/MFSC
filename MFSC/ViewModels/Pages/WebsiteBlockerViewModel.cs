@@ -1,15 +1,16 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using Wpf.Ui.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using System.Windows;
+using Wpf.Ui;
+using Wpf.Ui.Controls;
 
 namespace MFSC.ViewModels.Pages
 {
@@ -23,18 +24,54 @@ namespace MFSC.ViewModels.Pages
 
     public partial class WebsiteBlockerViewModel : ObservableObject
     {
-        // 网站集合（用于绑定UI）
-        public ObservableCollection<WebsiteInfo> Websites { get; } = new()
-        {
+        // 网站集合（扩展更多与学习无关的网站）
+        public ObservableCollection<WebsiteInfo> Websites { get; } =
+        [
+            // 视频娱乐类
             new WebsiteInfo { Name = "哔哩哔哩", Domain = "www.bilibili.com" },
             new WebsiteInfo { Name = "优酷视频", Domain = "www.youku.com" },
             new WebsiteInfo { Name = "腾讯视频", Domain = "v.qq.com" },
-            new WebsiteInfo { Name = "抖音", Domain = "www.douyin.com" },
-            new WebsiteInfo { Name = "快手", Domain = "www.kuaishou.com" },
             new WebsiteInfo { Name = "爱奇艺", Domain = "www.iqiyi.com" },
             new WebsiteInfo { Name = "搜狐视频", Domain = "tv.sohu.com" },
-            new WebsiteInfo { Name = "芒果视频", Domain = "www.mgtv.com" }
-        };
+            new WebsiteInfo { Name = "芒果TV", Domain = "www.mgtv.com" },
+            new WebsiteInfo { Name = "西瓜视频", Domain = "www.ixigua.com" },
+            new WebsiteInfo { Name = "乐视视频", Domain = "www.le.com" },
+            
+            // 短视频类
+            new WebsiteInfo { Name = "抖音", Domain = "www.douyin.com" },
+            new WebsiteInfo { Name = "快手", Domain = "www.kuaishou.com" },
+            new WebsiteInfo { Name = "小红书", Domain = "www.xiaohongshu.com" },
+            new WebsiteInfo { Name = "微视", Domain = "weishi.qq.com" },
+            
+            // 直播类
+            new WebsiteInfo { Name = "虎牙直播", Domain = "www.huya.com" },
+            new WebsiteInfo { Name = "斗鱼直播", Domain = "www.douyu.com" },
+            new WebsiteInfo { Name = "B站直播", Domain = "live.bilibili.com" },
+            new WebsiteInfo { Name = "抖音直播", Domain = "live.douyin.com" },
+            
+            // 社交娱乐类
+            new WebsiteInfo { Name = "微博", Domain = "www.weibo.com" },
+            new WebsiteInfo { Name = "微信网页版", Domain = "wx.qq.com" },
+            new WebsiteInfo { Name = "知乎（娱乐内容）", Domain = "www.zhihu.com" },
+            new WebsiteInfo { Name = "贴吧", Domain = "tieba.baidu.com" },
+            
+            // 游戏类
+            new WebsiteInfo { Name = "英雄联盟", Domain = "lol.qq.com" },
+            new WebsiteInfo { Name = "王者荣耀", Domain = "pvp.qq.com" },
+            new WebsiteInfo { Name = "原神", Domain = "ys.mihoyo.com" },
+            new WebsiteInfo { Name = "Steam", Domain = "store.steampowered.com" },
+            
+            // 购物类
+            new WebsiteInfo { Name = "淘宝", Domain = "www.taobao.com" },
+            new WebsiteInfo { Name = "京东", Domain = "www.jd.com" },
+            new WebsiteInfo { Name = "拼多多", Domain = "www.pinduoduo.com" },
+            new WebsiteInfo { Name = "唯品会", Domain = "www.vip.com" },
+            
+            // 新闻娱乐类
+            new WebsiteInfo { Name = "网易娱乐", Domain = "ent.163.com" },
+            new WebsiteInfo { Name = "新浪娱乐", Domain = "ent.sina.com.cn" },
+            new WebsiteInfo { Name = "腾讯娱乐", Domain = "ent.qq.com" }
+        ];
 
         [ObservableProperty]
         private string _statusMessage = string.Empty; // 状态提示信息
@@ -161,7 +198,7 @@ namespace MFSC.ViewModels.Pages
         }
 
         // 刷新DNS缓存
-        private async Task FlushDnsAsync()
+        private static async Task FlushDnsAsync()
         {
             using var process = new Process
             {
@@ -178,7 +215,7 @@ namespace MFSC.ViewModels.Pages
         }
 
         // 检查是否以管理员身份运行
-        private bool IsRunningAsAdmin()
+        private static bool IsRunningAsAdmin()
         {
             var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
             var principal = new System.Security.Principal.WindowsPrincipal(identity);
