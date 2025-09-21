@@ -11,6 +11,7 @@ using MFSC.Views.Windows;
 using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
 using MFSC.Helpers;
+using System.Windows.Controls;
 
 namespace MFSC
 {
@@ -43,7 +44,10 @@ namespace MFSC
                 services.AddSingleton<INavigationService, NavigationService>();
 
                 services.AddSingleton<IContentDialogService, ContentDialogService>();
+                services.AddSingleton<ContentPresenter>();
 
+                services.AddSingleton<LoginWindow>();
+                services.AddSingleton<LoginWindowViewModel>();
                 // Main window with navigation
                 services.AddSingleton<INavigationWindow, MainWindow>();
                 services.AddSingleton<MainWindowViewModel>();

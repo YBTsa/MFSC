@@ -1,4 +1,5 @@
 ﻿using MFSC.ViewModels.Windows;
+using System.Windows.Controls;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Appearance;
@@ -25,8 +26,12 @@ namespace MFSC.Views.Windows
             SetPageService(navigationViewPageProvider);
 
             navigationService.SetNavigationControl(RootNavigation);
-        }
+            Loaded += (_,_)=>
+            {
+                new LoginWindow().ShowDialog();
+            };
 
+        }
         #region INavigationWindow methods
 
         public INavigationView GetNavigation() => RootNavigation;

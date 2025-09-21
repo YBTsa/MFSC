@@ -1,17 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using MFSC.Helpers;
-using System;
-using System.Collections.Generic;
+﻿using MFSC.Helpers;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using Wpf.Ui;
-using Wpf.Ui.Controls;
 
 namespace MFSC.ViewModels.Pages
 {
