@@ -30,7 +30,7 @@ namespace MFSC.ViewModels.Pages
         }
         private void LinkToGithub()
         {
-            Process.Start("explorer.exe", "https://github.com/YBTsa");
+            Process.Start("explorer.exe", "https://github.com/YBTsa/MFSC");
         }
         private void LinkToWebsite()
         {

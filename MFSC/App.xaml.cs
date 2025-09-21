@@ -10,6 +10,7 @@ using MFSC.Views.Pages;
 using MFSC.Views.Windows;
 using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
+using MFSC.Helpers;
 
 namespace MFSC
 {
@@ -70,6 +71,7 @@ namespace MFSC
         /// </summary>
         private async void OnStartup(object sender, StartupEventArgs e)
         {
+            Log.Info("Pargram is loading...");
             await _host.StartAsync();
         }
 
@@ -78,8 +80,8 @@ namespace MFSC
         /// </summary>
         private async void OnExit(object sender, ExitEventArgs e)
         {
+            Log.Info("Pragram is stoping...");
             await _host.StopAsync();
-
             _host.Dispose();
         }
 

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MFSC.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -96,6 +97,7 @@ namespace MFSC.ViewModels.Pages
             {
                 if (!File.Exists(_hostsPath))
                 {
+                    Log.Warn("hosts 文件不存在");
                     StatusMessage = " hosts 文件不存在";
                     return;
                 }
@@ -109,14 +111,17 @@ namespace MFSC.ViewModels.Pages
             }
             catch (UnauthorizedAccessException)
             {
+                Log.Warn("没有权限访问 hosts 文件，请以管理员身份运行");
                 StatusMessage = "没有权限访问 hosts 文件，请以管理员身份运行";
             }
             catch (IOException ex)
             {
+                Log.Warn($"读取 hosts 文件失败: {ex.Message}");
                 StatusMessage = $"读取 hosts 文件失败: {ex.Message}";
             }
             catch (Exception ex)
             {
+                Log.Warn($"加载失败: {ex.Message}");
                 StatusMessage = $"加载失败: {ex.Message}";
             }
         }
@@ -125,6 +130,7 @@ namespace MFSC.ViewModels.Pages
         private async Task SaveAsync()
         {
             IsProcessing = true;
+            Log.Warn("正在保存...");
             StatusMessage = "正在保存...";
 
             try
@@ -132,6 +138,7 @@ namespace MFSC.ViewModels.Pages
                 // 检查管理员权限
                 if (!IsRunningAsAdmin())
                 {
+                    Log.Warn("需要管理员权限才能修改 hosts 文件");
                     StatusMessage = "需要管理员权限才能修改 hosts 文件";
                     IsProcessing = false;
                     return;
@@ -166,19 +173,22 @@ namespace MFSC.ViewModels.Pages
 
                 // 刷新DNS缓存
                 await FlushDnsAsync();
-
+                Log.Warn("保存成功，已生效");
                 StatusMessage = "保存成功，已生效";
             }
             catch (UnauthorizedAccessException)
             {
+                Log.Warn("权限不足，无法修改 hosts 文件");
                 StatusMessage = "权限不足，无法修改 hosts 文件";
             }
             catch (IOException ex)
             {
+                Log.Warn($"文件操作失败: {ex.Message}");
                 StatusMessage = $"文件操作失败: {ex.Message}";
             }
             catch (Exception ex)
             {
+                Log.Warn($"保存失败: {ex.Message}");
                 StatusMessage = $"保存失败: {ex.Message}";
             }
             finally
