@@ -9,88 +9,143 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="系统清理"
-    d:DataContext="{d:DesignInstance vm:CleanerViewModel}"
-    d:DesignHeight="450"
+    d:DataContext="{d:DesignInstance vm:CleanerViewModel, IsDesignTimeCreatable=True}"
+    d:DesignHeight="500"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Page.Resources>
-        <!-- 声明转换器实例 -->
+        <!-- 资源集中管理 -->
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:StringToBrushConverter x:Key="StringToBrushConverter"/>
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
-        <!-- WPF 内置的布尔转可见性转换器 -->
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <!-- 列表项样式优化 -->
+        <Style TargetType="ListViewItem" x:Key="CleanItemStyle">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F0F0F0"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E0EFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
-    <Grid Margin="20">
+
+    <!-- 主容器使用UniformGrid确保响应式布局 -->
+    <Grid Margin="20" Background="Transparent">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <!-- 标题行 -->
+            <RowDefinition Height="*"/>
+            <!-- 列表内容区（自适应高度） -->
+            <RowDefinition Height="Auto"/>
+            <!-- 状态信息行 -->
+            <RowDefinition Height="6"/>
+            <!-- 进度条行（固定高度） -->
+            <RowDefinition Height="Auto"/>
+            <!-- 错误信息行 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 按钮行 -->
         </Grid.RowDefinitions>
 
-        <!-- 清理项目列表 -->
-        <StackPanel Grid.Row="0">
-            <ui:TextBlock Text="清理项目选择" FontSize="18" Margin="0,0,0,10"/>
-
-            <ui:Card>
-                <ScrollViewer 
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled"
-                    MaxHeight="266">
-
-                    <ui:ListView ItemsSource="{Binding CleanProjects}" BorderThickness="0">
-                        <ui:ListView.ItemTemplate>
-                            <DataTemplate>
-                                <WrapPanel Margin="5,2">
-                                    <CheckBox 
-                                        IsChecked="{Binding IsChoosed, Mode=TwoWay}" 
-                                        Margin="0,0,10,0"
-                                        VerticalAlignment="Center"
-                                        IsEnabled="{Binding DataContext.IsCleaning, Converter={StaticResource InverseBooleanConverter}, RelativeSource={RelativeSource AncestorType=Page}}"/>
-                                    <StackPanel>
-                                        <ui:TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                        <ui:TextBlock Text="{Binding Description}" FontSize="12" Foreground="Gray"/>
-                                    </StackPanel>
-                                </WrapPanel>
-                            </DataTemplate>
-                        </ui:ListView.ItemTemplate>
-                    </ui:ListView>
-                </ScrollViewer>
-            </ui:Card>
+        <!-- 标题区域 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <ui:TextBlock 
+                Text="选择需要清理的项目" 
+                FontSize="20" 
+                Margin="0,5,0,0"/>
         </StackPanel>
 
-        <!-- 状态提示 -->
-        <ui:TextBlock 
-            Grid.Row="1" 
-            Text="{Binding StatusMessage}" 
-            Margin="0,5,0,5" 
-            Foreground="{Binding ErrorMessage, Converter={StaticResource StringToBrushConverter}, ConverterParameter='Red,Black'}"/>
+        <!-- 清理项目列表（带卡片容器） -->
+        <ui:Card Grid.Row="1" Margin="0,5" VerticalAlignment="Top">
+            <!-- 虚拟化列表优化性能 -->
+            <ui:ListView 
+                    ItemsSource="{Binding CleanProjects}" 
+                    BorderThickness="0" 
+                    Background="Transparent"
+                    ItemContainerStyle="{StaticResource CleanItemStyle}"
+                    VirtualizingPanel.IsVirtualizing="True" 
+                    VirtualizingPanel.VirtualizationMode="Recycling" 
+                    ScrollViewer.VerticalScrollBarVisibility="Visible"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled" Height="283">
+                <ui:ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Height="Auto">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MinWidth="40"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-        <!-- 进度条 -->
-        <ProgressBar 
+                            <!-- 复选框（带交互反馈） -->
+                            <CheckBox 
+                                    Grid.Column="0"
+                                    IsChecked="{Binding IsChoosed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    VerticalAlignment="Center"
+                                    IsEnabled="{Binding DataContext.IsCleaning, Converter={StaticResource InverseBooleanConverter}, RelativeSource={RelativeSource AncestorType=Page}}"
+                                    ToolTip="选择清理此项">
+                            </CheckBox>
+
+                            <!-- 项目信息 -->
+                            <StackPanel Grid.Column="1" Margin="5,0">
+                                <ui:TextBlock 
+                                        Text="{Binding Name}" 
+                                        FontSize="14"
+                                        FontWeight="Medium"/>
+                                <ui:TextBlock 
+                                        Text="{Binding Description}" 
+                                        FontSize="12" 
+                                        Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ui:ListView.ItemTemplate>
+            </ui:ListView>
+        </ui:Card>
+
+        <!-- 状态提示（动态颜色反馈） -->
+        <ui:TextBlock 
             Grid.Row="2" 
+            Text="{Binding StatusMessage}" 
+            Margin="0,10,0,5" 
+            FontSize="14"
+            Foreground="{Binding ErrorMessage, Converter={StaticResource StringToBrushConverter}, ConverterParameter='Red,Primary'}"/>
+
+        <!-- 进度条（优化视觉体验） -->
+        <ProgressBar 
+            Grid.Row="3" 
             IsIndeterminate="{Binding IsIndeterminate}" 
             Value="{Binding ProgressValue}" 
             Maximum="100"
             Visibility="{Binding IsCleaning, Converter={StaticResource BooleanToVisibilityConverter}}"
-            Height="6"
-            Margin="0,5,0,5"/>
+            Height="10"
+            Margin="0,5,0,10">
+        </ProgressBar>
 
-        <!-- 错误消息 -->
+        <!-- 错误消息（带动画效果） -->
         <ui:TextBlock 
-            Grid.Row="3" 
+            Grid.Row="4" 
             Text="{Binding ErrorMessage}" 
             Foreground="Red" 
             Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"
-            Margin="0,5,0,0"/>
+            Margin="0,0,0,10"
+            FontSize="13">
+        </ui:TextBlock>
 
-        <!-- 操作按钮 -->
-        <StackPanel Grid.Row="4" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,10,0,0">
+        <!-- 操作按钮（增强交互体验） -->
+        <StackPanel Grid.Row="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,10,0,0">
             <ui:Button 
-                Content="清理！" 
+                Content="开始清理" 
                 Command="{Binding CleanCommand}"
-                IsEnabled="{Binding CleanCommand.CanExecute}">
+                IsEnabled="{Binding CleanCommand.CanExecute}"
+                Width="120"
+                Height="36">
                 <ui:Button.Icon>
                     <ui:FontIcon Glyph="&#xE74D;" FontFamily="Segoe Fluent Icons"/>
                 </ui:Button.Icon>

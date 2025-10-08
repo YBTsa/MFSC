@@ -1,5 +1,4 @@
 ﻿using MFSC.ViewModels.Pages;
-using System.Diagnostics;
 using Wpf.Ui.Abstractions.Controls;
 
 namespace MFSC.Views.Pages

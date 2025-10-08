@@ -1,5 +1,4 @@
 ﻿using MFSC.ViewModels.Pages;
-using System.Diagnostics;
 using Wpf.Ui.Abstractions.Controls;
 
 namespace MFSC.Views.Pages
@@ -13,12 +12,13 @@ namespace MFSC.Views.Pages
             ViewModel = viewModel;
             DataContext = ViewModel;
             InitializeComponent();
-            Debug.WriteLine("Loading");
-            _ = UpdateUsage();
+            Loaded += OnLoaded;
         }
-        private async Task UpdateUsage()
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            await ViewModel.UpdateUsage();
+            // 页面加载后启动监控
+            ViewModel.StartMonitoring();
         }
     }
 }

@@ -1,7 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MFSC.Views.Windows;
 using Microsoft.Extensions.Hosting;
-using MFSC.Views.Pages;
-using MFSC.Views.Windows;
 using Wpf.Ui;
 
 namespace MFSC.Services

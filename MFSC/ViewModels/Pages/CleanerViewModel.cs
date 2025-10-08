@@ -1,16 +1,12 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using MFSC.Helpers;
+﻿using MFSC.Helpers;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 
 namespace MFSC.ViewModels.Pages
 {
-    public class CleanProjectInfo : INotifyPropertyChanged  // 实现接口
+    public class CleanProjectInfo : INotifyPropertyChanged
     {
         private string _name;
         private int _id;
@@ -21,55 +17,34 @@ namespace MFSC.ViewModels.Pages
         public string Name
         {
             get => _name;
-            set
-            {
-                _name = value;
-                OnPropertyChanged();
-            }
+            set { _name = value; OnPropertyChanged(); }
         }
 
         public int Id
         {
             get => _id;
-            set
-            {
-                _id = value;
-                OnPropertyChanged();
-            }
+            set { _id = value; OnPropertyChanged(); }
         }
 
         public string Description
         {
             get => _description;
-            set
-            {
-                _description = value;
-                OnPropertyChanged();
-            }
+            set { _description = value; OnPropertyChanged(); }
         }
 
         public bool IsChoosed
         {
             get => _isChoosed;
-            set
-            {
-                _isChoosed = value;
-                OnPropertyChanged();  // 关键：属性变化时通知UI
-            }
+            set { _isChoosed = value; OnPropertyChanged(); }
         }
+
         public string TargetPath
         {
             get => _targetPath;
-            set
-            {
-                _targetPath = value;
-                OnPropertyChanged();
-            }
+            set { _targetPath = value; OnPropertyChanged(); }
         }
 
-        // 实现 INotifyPropertyChanged 接口
         public event PropertyChangedEventHandler? PropertyChanged;
-
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -78,17 +53,20 @@ namespace MFSC.ViewModels.Pages
 
     public partial class CleanerViewModel : ObservableObject
     {
-        // 进度相关属性
-        [ObservableProperty] private int _progressValue;
-        [ObservableProperty] private bool _isIndeterminate;
-        [ObservableProperty] private bool _isCleaning;
-        [ObservableProperty] private string _statusMessage = "准备就绪";
-        [ObservableProperty] private string _errorMessage = string.Empty;
+        [ObservableProperty]
+        private int _progressValue;
+        [ObservableProperty]
+        private bool _isIndeterminate;
+        [ObservableProperty]
+        private bool _isCleaning;
+        [ObservableProperty]
+        private string _statusMessage = "准备就绪";
+        [ObservableProperty]
+        private string _errorMessage = string.Empty;
 
-        // 清理命令
         public IAsyncRelayCommand CleanCommand { get; }
 
-        private ObservableCollection<CleanProjectInfo> _cleanProjects = [
+        private readonly ObservableCollection<CleanProjectInfo> _cleanProjects = [
             new CleanProjectInfo {
                 Id = 1,
                 Name = "系统临时文件",
@@ -125,7 +103,7 @@ namespace MFSC.ViewModels.Pages
                 TargetPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\Downloads"
             },
             new CleanProjectInfo {
-                Id = 7,
+                Id = 7,  // 修正ID匹配问题
                 Name = "希沃白板临时文件",
                 Description = "希沃白板下载的文件，通常可清理"
             }
@@ -136,7 +114,6 @@ namespace MFSC.ViewModels.Pages
         public CleanerViewModel()
         {
             CleanCommand = new AsyncRelayCommand(ExecuteCleanAsync, CanExecuteClean);
-            // 监听选择变化，更新命令状态
             foreach (var project in CleanProjects)
             {
                 project.PropertyChanged += (s, e) =>
@@ -157,33 +134,38 @@ namespace MFSC.ViewModels.Pages
             IsCleaning = true;
             ErrorMessage = string.Empty;
             ProgressValue = 0;
-            var totalItems = CleanProjects.Count(p => p.IsChoosed);
-            var completedItems = 0;
+            var selectedProjects = CleanProjects.Where(p => p.IsChoosed).ToList();
+            var totalItems = selectedProjects.Count;
+            int completedItems = 0;
 
             try
             {
-                foreach (var project in CleanProjects.Where(p => p.IsChoosed))
+                // 内存优化：使用数组替代IEnumerable重复枚举
+                var projectsArray = selectedProjects.ToArray();
+                foreach (var project in projectsArray)
                 {
                     StatusMessage = $"正在清理: {project.Name}";
+                    // 根据项目类型调度资源
                     switch (project.Id)
                     {
-                        case 2: // Windows更新缓存需要DISM操作
+                        case 2: // Windows更新缓存（高优先级）
                             IsIndeterminate = true;
-                            await SystemCleanHelper.CleanWindowsUpdateCacheAsync();
+                            await Task.Run(async () => await SystemCleanHelper.CleanWindowsUpdateCacheAsync(),
+                                CancellationToken.None);
                             break;
                         case 3: // 回收站
                             await SystemCleanHelper.EmptyRecycleBinAsync();
                             break;
-                        case 9: // 希沃白板临时文件
+                        case 7: // 希沃白板（修正ID匹配）
                             var easiNotePaths = SystemCleanHelper.GetEasiNote5Temps();
                             await SystemCleanHelper.CleanPathsAsync(easiNotePaths, new Progress<int>(p =>
                                 ProgressValue = (completedItems * 100 + p) / totalItems));
                             break;
-                        default: // 普通文件清理
+                        default: // 普通清理（按优先级分配资源）
                             if (!string.IsNullOrEmpty(project.TargetPath) && Directory.Exists(project.TargetPath))
                             {
-                                await SystemCleanHelper.CleanDirectoryAsync(project.TargetPath, new Progress<int>(p =>
-                                    ProgressValue = (completedItems * 100 + p) / totalItems));
+                                await SystemCleanHelper.CleanDirectoryAsync(project.TargetPath,
+                                    new Progress<int>(p => ProgressValue = (completedItems * 100 + p) / totalItems));
                             }
                             break;
                     }

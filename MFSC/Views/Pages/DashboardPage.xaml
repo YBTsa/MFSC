@@ -14,9 +14,6 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Page.Resources>
-        <helpers:NetworkSpeedConverter x:Key="NetworkSpeedConverter"/>
-    </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -45,48 +42,54 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            <!-- CPU卡片（移除ProgressRing） -->
             <ui:Card Grid.Column="0" Grid.Row="0">
-                <Grid Height="146">
+                <Grid Height="140">
                     <ui:FontIcon HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe Fluent Icons" Glyph="&#xE950;" Width="40" Height="40"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="CPU使用率"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Right" Text="{Binding CpuUsage, StringFormat={}{0}%}"/>
                 </Grid>
             </ui:Card>
+            <!-- 内存卡片（移除ProgressRing） -->
             <ui:Card Grid.Column="1" Grid.Row="0">
-                <Grid Height="146">
+                <Grid Height="140">
                     <ui:FontIcon HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe Fluent Icons" Glyph="&#xE964;" Width="40" Height="40"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="RAM使用率"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Right" Text="{Binding MemoryUsage, StringFormat={}{0}%}"/>
                 </Grid>
             </ui:Card>
+            <!-- 硬盘卡片（移除ProgressRing） -->
             <ui:Card Grid.Column="2" Grid.Row="0">
-                <Grid Height="146">
+                <Grid Height="140">
                     <ui:FontIcon HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe Fluent Icons" Glyph="&#xEDA2;" Width="40" Height="40"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="硬盘使用率"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Right" Text="{Binding DiskUsage, StringFormat={}{0}%}"/>
                 </Grid>
             </ui:Card>
+            <!-- GPU卡片（移除ProgressRing） -->
             <ui:Card Grid.Column="0" Grid.Row="1">
-                <Grid Height="146">
+                <Grid Height="140">
                     <ui:FontIcon HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe Fluent Icons" Glyph="&#xF211;" Width="40" Height="40"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="GPU使用率"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Right" Text="{Binding GpuUsage, StringFormat={}{0}%}"/>
                 </Grid>
             </ui:Card>
+            <!-- 网络卡片（保持不变） -->
             <ui:Card Grid.Column="1" Grid.Row="1">
-                <Grid Height="146">
+                <Grid Height="140">
                     <ui:FontIcon HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe Fluent Icons" Glyph="&#xEDA3;" Width="40" Height="40"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="网络使用率"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                         <ui:FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE650;" FontSize="12"/>
-                        <ui:TextBlock Text="{Binding NetworkUploadUsage, Converter={StaticResource NetworkSpeedConverter}}"/>
+                        <ui:TextBlock Text="{Binding NetworkUploadUsage,StringFormat={}{0}Kbps}"/>
                         <ui:FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE64F;" FontSize="12"/>
-                        <ui:TextBlock Text="{Binding NetworkDownloadUsage, Converter={StaticResource NetworkSpeedConverter}}"/>
+                        <ui:TextBlock Text="{Binding NetworkDownloadUsage,StringFormat={}{0}Kbps}"/>
                     </StackPanel>
                 </Grid>
             </ui:Card>
+            <!-- 进程数卡片（保持不变） -->
             <ui:Card Grid.Column="2" Grid.Row="1">
-                <Grid Height="146">
+                <Grid Height="140">
                     <ui:FontIcon HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe Fluent Icons" Glyph="&#xECAA;" Width="40" Height="40"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="进程数"/>
                     <ui:TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Right" Text="{Binding ProcessCount}"/>

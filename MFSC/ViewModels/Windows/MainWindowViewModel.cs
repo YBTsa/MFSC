@@ -28,6 +28,12 @@ namespace MFSC.ViewModels.Windows
                 Content = "网站屏蔽器",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.WebAsset24 },
                 TargetPageType = typeof(Views.Pages.WebsiteBlockerPage)
+            },
+            new NavigationViewItem()
+            {
+                Content = "密码管理器",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Password24 },
+                TargetPageType = typeof(Views.Pages.PasswordManagerPage)
             }
         ];
 

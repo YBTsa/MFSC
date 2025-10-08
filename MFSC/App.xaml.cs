@@ -1,17 +1,17 @@
-﻿using System.IO;
-using System.Windows.Threading;
-using MFSC.ViewModels.Pages;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using MFSC.Helpers;
 using MFSC.Services;
+using MFSC.ViewModels.Pages;
 using MFSC.ViewModels.Windows;
 using MFSC.Views.Pages;
 using MFSC.Views.Windows;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System.IO;
+using System.Windows.Controls;
+using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
-using MFSC.Helpers;
-using System.Windows.Controls;
 
 namespace MFSC
 {
@@ -60,6 +60,8 @@ namespace MFSC
                 services.AddSingleton<CleanerViewModel>();
                 services.AddSingleton<SettingsPage>();
                 services.AddSingleton<SettingsViewModel>();
+                services.AddSingleton<PasswordManagerPage>();
+                services.AddSingleton<PasswordManagerViewModel>();
             }).Build();
 
         /// <summary>

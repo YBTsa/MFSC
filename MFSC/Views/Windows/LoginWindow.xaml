@@ -42,6 +42,8 @@
                     YoungBat MFSC
                 </ui:TextBlock>
                 <ui:TextBlock FontFamily="Segoe UI Variable" FontSize="14" Foreground="Gray" TextAlignment="Center">
+                    欢迎您,Administrator
+                    <LineBreak/>
                     请登录以继续使用
                 </ui:TextBlock>
             </StackPanel>
@@ -69,5 +71,13 @@
                 Margin="0,10,0,0"
                 Command="{Binding TaskLoginCommand}"/>
         </StackPanel>
+        <ui:TextBlock 
+            FontFamily="Segoe UI Variable" 
+            FontSize="12" 
+            Foreground="Gray" 
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Bottom" 
+            Margin="0,0,0,10"
+            Text="© 2025 YoungBat. All rights reserved."/>
     </Grid>
 </ui:FluentWindow>
