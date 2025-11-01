@@ -9,7 +9,7 @@ MFSC is a computer management system specifically designed for school environmen
 ## Core Features
 - **System Dashboard**: Real-time monitoring of CPU, memory, hard disk, GPU usage, and network status for comprehensive device performance oversight
 - **Website Blocker**: Manages blocking of non-educational websites including video entertainment platforms, social networks, and gaming sites to maintain a focused learning environment
-- **System Cleaner**: Offers device cleaning functionality (in development) to optimize storage space and operational efficiency
+- **System Cleaner**: Offers device cleaning functionality to optimize storage space and operational efficiency
 - **Personalization Settings**: Supports light/dark theme switching to adapt to different usage scenarios and user preferences
 
 MFSC is released under the MIT open-source license, developed and maintained by YBTsa, continuously providing reliable solutions for campus computer management.
