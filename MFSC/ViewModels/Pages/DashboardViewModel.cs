@@ -1,33 +1,30 @@
 ﻿using MFSC.Helpers;
 using System.Diagnostics;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace MFSC.ViewModels.Pages
 {
     public partial class DashboardViewModel : ObservableObject
     {
         private readonly CancellationTokenSource _cts = new();
+        private readonly Dispatcher _dispatcher; // 新增UI调度器
 
         // 字段缓存，减少属性更新次数
-        [ObservableProperty]
-        private int _cpuUsage;
-        [ObservableProperty]
-        private int _memoryUsage;
-        [ObservableProperty]
-        private int _diskUsage;
-        [ObservableProperty]
-        private int _networkUploadUsage;
-        [ObservableProperty]
-        private int _networkDownloadUsage;
-        [ObservableProperty]
-        private int _gpuUsage;
-        [ObservableProperty]
-        private int _processCount;
+        [ObservableProperty] private int _cpuUsage;
+        [ObservableProperty] private int _memoryUsage;
+        [ObservableProperty] private int _diskUsage;
+        [ObservableProperty] private int _networkUploadUsage;
+        [ObservableProperty] private int _networkDownloadUsage;
+        [ObservableProperty] private int _gpuUsage;
+        [ObservableProperty] private int _processCount;
+
         public ICommand LinkToGithubCommand { get; }
         public ICommand LinkToWebsiteCommand { get; }
 
         public DashboardViewModel()
         {
+            _dispatcher = Dispatcher.CurrentDispatcher; // 获取UI线程调度器
             LinkToGithubCommand = new RelayCommand(LinkToGithub);
             LinkToWebsiteCommand = new RelayCommand(LinkToWebsite);
         }
@@ -41,36 +38,42 @@ namespace MFSC.ViewModels.Pages
             _ = UpdateUsageLoop(_cts.Token);
         }
 
-        // 优化的监控循环
+        // 优化的监控循环（统一周期+UI线程更新）
         private async Task UpdateUsageLoop(CancellationToken token)
         {
             try
             {
+                // 首次网络采样
+                SystemInfoHelper.SampleNetworkStats();
+                await Task.Delay(750, token).ConfigureAwait(false);
+
                 while (!token.IsCancellationRequested)
                 {
-                    // 并行执行所有数据采集（无冗余Task.Run包装）
-                    var cpuTask = Task.FromResult(SystemInfoHelper.GetCpuUsage());
-                    var ramTask = Task.FromResult(SystemInfoHelper.GetRamUsage());
-                    var diskTask = Task.FromResult(SystemInfoHelper.GetDiskUsage());
-                    var gpuTask = SystemInfoHelper.GetGpuUsage();
-                    var networkUploadTask = SystemInfoHelper.GetNetworkUploadUsage();
-                    var networkDownloadTask = SystemInfoHelper.GetNetworkDownloadUsage();
-                    var processCountTask = SystemInfoHelper.GetProcessesCount();
+                    // 同步获取所有数据（无内部延迟）
+                    var cpu = SystemInfoHelper.GetCpuUsage();
+                    var memory = SystemInfoHelper.GetRamUsage();
+                    var disk = SystemInfoHelper.GetDiskUsage();
+                    var gpu = SystemInfoHelper.GetGpuUsage();
+                    var processCount = SystemInfoHelper.GetProcessesCount();
 
-                    // 等待所有任务完成（总耗时取决于最慢的任务）
-                    await Task.WhenAll(gpuTask, networkDownloadTask, networkUploadTask, cpuTask, ramTask, diskTask, processCountTask)
-                        .ConfigureAwait(false);
+                    // 基于上次采样计算网络流量
+                    var networkDownload = SystemInfoHelper.CalculateNetworkDownload();
+                    var networkUpload = SystemInfoHelper.CalculateNetworkUpload();
 
-                    // 更新属性（UI线程安全）
-                    CpuUsage = cpuTask.Result;
-                    MemoryUsage = ramTask.Result;
-                    DiskUsage = diskTask.Result;
-                    GpuUsage = gpuTask.Result;
-                    ProcessCount = processCountTask.Result;
-                    NetworkDownloadUsage = networkDownloadTask.Result;
-                    NetworkUploadUsage = networkUploadTask.Result;
+                    // 强制在UI线程更新属性
+                    _dispatcher.Invoke(() =>
+                    {
+                        CpuUsage = cpu;
+                        MemoryUsage = memory;
+                        DiskUsage = disk;
+                        GpuUsage = gpu;
+                        ProcessCount = processCount;
+                        NetworkDownloadUsage = networkDownload;
+                        NetworkUploadUsage = networkUpload;
+                    });
 
-                    // 控制更新频率（总周期约500ms，比原来快一倍）
+                    // 采样下次网络数据，等待固定周期
+                    SystemInfoHelper.SampleNetworkStats();
                     await Task.Delay(500, token).ConfigureAwait(false);
                 }
             }

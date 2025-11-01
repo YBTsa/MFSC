@@ -11,6 +11,11 @@ namespace MFSC.Helpers
         private static readonly PerformanceCounter _diskCounter;
         private static readonly List<PerformanceCounter> _gpuCounters;
 
+        // 网络采样缓存（新增）
+        private static long _lastBytesReceived;
+        private static long _lastBytesSent;
+        private static DateTime _lastNetworkCheck = DateTime.MinValue;
+
         // 网络接口缓存（减少重复枚举开销）
         private static IEnumerable<NetworkInterface> _activeNetInterfaces;
         private static DateTime _lastNetInterfaceUpdate = DateTime.MinValue;
@@ -34,12 +39,11 @@ namespace MFSC.Helpers
         #region CPU使用率（复用计数器）
         public static int GetCpuUsage()
         {
-            // 直接调用已初始化的计数器，减少对象创建
             return (int)_cpuCounter.NextValue();
         }
         #endregion
 
-        #region 内存使用率（替换WMI为P/Invoke，速度提升10倍+）
+        #region 内存使用率（P/Invoke实现）
         [StructLayout(LayoutKind.Sequential)]
         private struct MEMORYSTATUSEX
         {
@@ -60,7 +64,6 @@ namespace MFSC.Helpers
 
         public static int GetRamUsage()
         {
-            // 直接调用内核API，替代缓慢的WMI查询
             var memStatus = new MEMORYSTATUSEX { dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>() };
             return GlobalMemoryStatusEx(ref memStatus) ? (int)memStatus.dwMemoryLoad : 0;
         }
@@ -69,23 +72,20 @@ namespace MFSC.Helpers
         #region 磁盘使用率（复用计数器）
         public static int GetDiskUsage()
         {
-            // 限制最大值为100，保持原逻辑
             return (int)Math.Min(_diskCounter.NextValue(), 100);
         }
         #endregion
 
-        #region 网络使用率（缓存活跃接口，减少LINQ开销）
+        #region 网络使用率（采样-计算分离模式，移除内部延迟）
         // 缓存活跃网络接口（1秒更新一次）
         private static IEnumerable<NetworkInterface> GetActiveNetInterfaces()
         {
             var now = DateTime.UtcNow;
-            // 超过缓存有效期则重新获取
             if (now - _lastNetInterfaceUpdate > TimeSpan.FromMilliseconds(NetInterfaceCacheMs) || _activeNetInterfaces == null)
             {
                 _activeNetInterfaces = NetworkInterface.GetAllNetworkInterfaces();
                 _lastNetInterfaceUpdate = now;
             }
-            // 循环筛选替代LINQ（减少委托开销）
             foreach (var ni in _activeNetInterfaces)
             {
                 if (ni.OperationalStatus == OperationalStatus.Up)
@@ -96,54 +96,50 @@ namespace MFSC.Helpers
         private static long GetTotalBytesReceived()
         {
             long total = 0;
-            // 循环累加替代LINQ Sum（减少迭代器开销）
             foreach (var ni in GetActiveNetInterfaces())
-            {
                 total += ni.GetIPv4Statistics().BytesReceived;
-            }
             return total;
         }
 
         private static long GetTotalBytesSent()
         {
             long total = 0;
-            // 循环累加替代LINQ Sum（减少迭代器开销）
             foreach (var ni in GetActiveNetInterfaces())
-            {
                 total += ni.GetIPv4Statistics().BytesSent;
-            }
             return total;
         }
 
-        public static async Task<int> GetNetworkDownloadUsage()
+        // 新增：采样当前网络状态（无延迟）
+        public static void SampleNetworkStats()
         {
-            var firstBytes = GetTotalBytesReceived();
-            await Task.Delay(500).ConfigureAwait(false); // 保持原延迟
-            var secondBytes = GetTotalBytesReceived();
-            return (int)((secondBytes - firstBytes) / 1024 * 2); // 保持原转换逻辑
+            _lastBytesReceived = GetTotalBytesReceived();
+            _lastBytesSent = GetTotalBytesSent();
+            _lastNetworkCheck = DateTime.UtcNow;
         }
 
-        public static async Task<int> GetNetworkUploadUsage()
+        // 新增：基于上次采样计算下载量（无延迟）
+        public static int CalculateNetworkDownload()
         {
-            var firstBytes = GetTotalBytesSent();
-            await Task.Delay(500).ConfigureAwait(false); // 保持原延迟
-            var secondBytes = GetTotalBytesSent();
-            return (int)((secondBytes - firstBytes) / 1024 * 2); // 保持原转换逻辑
+            var current = GetTotalBytesReceived();
+            return (int)((current - _lastBytesReceived) / 1024 * 2);
         }
-        #endregion
 
-        #region 进程计数
-
-        public static async Task<int> GetProcessesCount()
+        // 新增：基于上次采样计算上传量（无延迟）
+        public static int CalculateNetworkUpload()
         {
-            return await Task.Run(() =>
-            {
-                return Process.GetProcesses().Length;
-            }).ConfigureAwait(false);
+            var current = GetTotalBytesSent();
+            return (int)((current - _lastBytesSent) / 1024 * 2);
         }
         #endregion
 
-        #region GPU使用率（缓存计数器，减少重复初始化）
+        #region 进程计数（改为同步方法）
+        public static int GetProcessesCount()
+        {
+            return Process.GetProcesses().Length;
+        }
+        #endregion
+
+        #region GPU使用率（移除内部延迟，改为同步）
         private static List<PerformanceCounter> InitializeGpuCounters()
         {
             try
@@ -152,7 +148,6 @@ namespace MFSC.Helpers
                 var counterNames = category.GetInstanceNames();
                 var counters = new List<PerformanceCounter>();
 
-                // 循环筛选替代LINQ（减少委托和迭代器开销）
                 foreach (var name in counterNames)
                 {
                     if (name.EndsWith("engtype_3D"))
@@ -162,7 +157,7 @@ namespace MFSC.Helpers
                             if (counter.CounterName == "Utilization Percentage")
                             {
                                 counters.Add(counter);
-                                counter.NextValue(); // 预热计数器
+                                counter.NextValue(); // 预热
                             }
                         }
                     }
@@ -175,20 +170,15 @@ namespace MFSC.Helpers
             }
         }
 
-        public static async Task<int> GetGpuUsage()
+        public static int GetGpuUsage() // 移除async和延迟
         {
             if (_gpuCounters.Count == 0)
                 return 0;
 
-            await Task.Delay(1000).ConfigureAwait(false); // 保持原延迟
-
             float total = 0;
-            // 循环累加替代ForEach（减少委托开销）
             foreach (var counter in _gpuCounters)
-            {
                 total += counter.NextValue();
-            }
-            return (int)total; // 保持原逻辑
+            return (int)total;
         }
         #endregion
     }

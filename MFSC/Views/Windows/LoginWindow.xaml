@@ -5,7 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:MFSC.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:windows="clr-namespace:MFSC.ViewModels.Windows" d:DataContext="{d:DesignInstance Type=windows:LoginWindowViewModel,IsDesignTimeCreatable=False}"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" 
+    xmlns:windows="clr-namespace:MFSC.ViewModels.Windows" 
+    d:DataContext="{d:DesignInstance Type=windows:LoginWindowViewModel,IsDesignTimeCreatable=False}"
     d:DesignHeight="400"
     d:DesignWidth="350"
     ExtendsContentIntoTitleBar="True"
@@ -47,7 +49,7 @@
                     请登录以继续使用
                 </ui:TextBlock>
             </StackPanel>
-            <!-- 密码输入区域 -->
+            <!-- 密码输入区域（新增回车键事件） -->
             <StackPanel Margin="0,0,0,20">
                 <ui:TextBlock 
                     FontFamily="Segoe UI Variable" 
@@ -56,20 +58,22 @@
                     请输入密码:
                 </ui:TextBlock>
                 <ui:PasswordBox 
+                    x:Name="PasswordBox"  
                     Height="40" 
                     FontSize="14"
                     Padding="10"
-                    Password="{Binding Password,Mode=OneWayToSource}"/>
+                    KeyDown="PasswordBox_KeyDown"/>
+                    <!-- 支持回车键登录 -->
             </StackPanel>
 
-            <!-- 按钮区域 -->
+            <!-- 按钮区域（新增点击事件备份） -->
             <ui:Button 
                 HorizontalAlignment="Stretch" 
                 Content="确认"
                 Height="40"
                 FontSize="14"
                 Margin="0,10,0,0"
-                Command="{Binding TaskLoginCommand}"/>
+                Click="LoginButton_Click"/>
         </StackPanel>
         <ui:TextBlock 
             FontFamily="Segoe UI Variable" 
@@ -78,6 +82,6 @@
             HorizontalAlignment="Center" 
             VerticalAlignment="Bottom" 
             Margin="0,0,0,10"
-            Text="© 2025 YoungBat. All rights reserved."/>
+            Text="© 2025 YBTsa. All rights reserved."/>
     </Grid>
 </ui:FluentWindow>

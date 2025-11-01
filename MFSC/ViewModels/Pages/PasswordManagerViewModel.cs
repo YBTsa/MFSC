@@ -1,13 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using MFSC.Models;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace MFSC.ViewModels.Pages
 {
@@ -80,9 +76,9 @@ namespace MFSC.ViewModels.Pages
         }
 
         [RelayCommand]
-        private async Task SavePasswordsAsync()
+        private async Task SavePasswordsAsync(bool isDeling)
         {
-            if (PasswordItems.Count == 0) return;
+            if (PasswordItems.Count == 0 && !isDeling) return;
 
             IsLoading = true;
             StatusMessage = "正在保存密码...";
@@ -151,7 +147,7 @@ namespace MFSC.ViewModels.Pages
             if (item != null)
             {
                 PasswordItems.Remove(item);
-                _ = SavePasswordsCommand.ExecuteAsync(null);
+                _ = SavePasswordsCommand.ExecuteAsync(true);
             }
         }
     }

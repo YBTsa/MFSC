@@ -20,50 +20,33 @@ namespace MFSC.Views.Windows
             DataContext = this;
 
             SystemThemeWatcher.Watch(this);
-
             InitializeComponent();
             SetPageService(navigationViewPageProvider);
-
             navigationService.SetNavigationControl(RootNavigation);
-            Loaded += (_, _) =>
+
+            // 修改后（MainWindow.xaml.cs）
+            Loaded += async (_, _) =>
             {
-                new LoginWindow().ShowDialog();
+                var loginWindow = new LoginWindow();
+                loginWindow.ShowDialog(); // 登录完成后再继续
             };
-
         }
+
         #region INavigationWindow methods
-
         public INavigationView GetNavigation() => RootNavigation;
-
         public bool Navigate(Type pageType) => RootNavigation.Navigate(pageType);
-
         public void SetPageService(INavigationViewPageProvider navigationViewPageProvider) => RootNavigation.SetPageProviderService(navigationViewPageProvider);
-
         public void ShowWindow() => Show();
-
         public void CloseWindow() => Close();
+        #endregion
 
-        #endregion INavigationWindow methods
-
-        /// <summary>
-        /// Raises the closed event.
-        /// </summary>
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-
-            // Make sure that closing this window will begin the process of closing the application.
             Application.Current.Shutdown();
         }
 
-        INavigationView INavigationWindow.GetNavigation()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetServiceProvider(IServiceProvider serviceProvider)
-        {
-            throw new NotImplementedException();
-        }
+        INavigationView INavigationWindow.GetNavigation() => throw new NotImplementedException();
+        public void SetServiceProvider(IServiceProvider serviceProvider) => throw new NotImplementedException();
     }
 }
